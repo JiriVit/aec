@@ -37,3 +37,29 @@ function plotSpectrum(x)
     
     plot(f(1 : n/2), abs(X(1 : n/2)));
 endfunction
+
+function [y] = doNlms(spk, mic)
+    M = 80;
+    len = length(spk);
+    h = zeros(M, 1);
+    spk0 = [zeros(1, M - 1) spk]; // spk signal preceded by zeros
+    y = zeros(1, len);
+    mikro = 0.7;
+    
+    for i = 1 : 10
+        // calculate echo estimate
+        x = spk0(i : (i + M - 1));
+        y(i) = x * flipdim(h, 1);
+
+        // update tap-weight
+        e = mic(i) - y(i);
+        stepsize = mikro * e * x / (x * x');
+        h = h + stepsize';     
+    end    
+endfunction
+
+
+
+
+
+
