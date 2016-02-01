@@ -1,0 +1,4 @@
+AT+CLVL=10
+CODEC_SetOutputGain(ROUTE_HF, 255, 63);
+CODEC_SetInputGain(ROUTE_HF, 16, 1, 255);
+
