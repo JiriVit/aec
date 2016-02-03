@@ -11,4 +11,15 @@ spk_fn    = '../data/01_spk_clvl12.raw';
 mic = loadRawData(mic_fn);
 spk = loadRawData(spk_fn);
 
-y = doNlms(mic(1:1000), spk(1:1000));
+// [y, e] = doNlms(mic(1000:$), spk(1000:$));
+
+t = linspace(0, 3000-1, 24000);
+
+subplot(211);
+plot(t, spk);
+xtitle('loudspeaker');
+
+subplot(212);
+plot(t, mic);
+xtitle('microphone');
+

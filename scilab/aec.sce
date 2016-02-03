@@ -38,23 +38,48 @@ function plotSpectrum(x)
     plot(f(1 : n/2), abs(X(1 : n/2)));
 endfunction
 
-function [y] = doNlms(spk, mic)
-    M = 80;
+
+N_C = 240
+L_C = 50
+
+function ro_OL = doubleTalkDetection(x, y)
+    xlen = length(x);
+    ylen = length(y);
+    z = zeros(1, L_C + 1);
+    
+    for l = 0 : L_C
+        xx = x((xlen - N_C + 1 - l) : (xlen - l));
+        yy = y((ylen - N_C + 1) : $);
+        z1 = abs(xx * yy');
+        z2 = abs(xx) * abs(yy');
+        if (z2 ~= 0)
+            z(l + 1) = z1 / z2;
+        end          
+    end
+    
+    ro_OL = max(z);
+endfunction
+
+function [d_d, e] = doNlms(spk, mic)
+    M = 5;
     len = length(spk);
     h = zeros(M, 1);
     spk0 = [zeros(1, M - 1) spk]; // spk signal preceded by zeros
-    y = zeros(1, len);
+    d_d = zeros(1, len);
+    e = zeros(1, len);
     mikro = 0.7;
     
-    for i = 1 : 10
+    for i = 1 : len
         // calculate echo estimate
         x = spk0(i : (i + M - 1));
-        y(i) = x * flipdim(h, 1);
+        d_d(i) = x * flipdim(h, 1);
 
         // update tap-weight
-        e = mic(i) - y(i);
-        stepsize = mikro * e * x / (x * x');
-        h = h + stepsize';     
+        e(i) = mic(i) - d_d(i);
+        stepsize = mikro * e(i) * x / (x * x');
+        if (i < 20)
+            h = h + stepsize';
+        end
     end    
 endfunction
 
