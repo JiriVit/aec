@@ -11,6 +11,10 @@ function saveRawData(x, filename)
     mclose(fd);
 endfunction
 
+function play(x)
+    sound(x ./ 32768, 8000);
+endfunction
+
 // 2nd order high-pass Butterworth filter with cut-off freq 100 Hz
 function [y] = applyHighPassFilter(x)
     B = [0.9460 -1.8920 0.9460];
@@ -39,8 +43,8 @@ function plotSpectrum(x)
 endfunction
 
 
-N_C = 240
-L_C = 50
+N_C = 240;
+L_C = 50;
 
 function ro_OL = doubleTalkDetection(x, y)
     xlen = length(x);
