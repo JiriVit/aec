@@ -1,6 +1,7 @@
 Debug/
 ipch/
 *.sdf
+*.opensdf
 *.bin
 ~$*
 *.lnk
