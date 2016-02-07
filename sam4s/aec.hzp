@@ -1,0 +1,101 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="aec" target="8" version="2">
+  <project Name="aec">
+    <configuration
+      CMSIS_4_DSP="Cortex-M4 Little Endian Without FPU"
+      Name="Common"
+      Target="SAM4S16C"
+      arm_architecture="v7EM"
+      arm_core_type="Cortex-M4"
+      arm_fpu_type="None"
+      arm_gcc_target="arm-unknown-eabi"
+      arm_interwork="No"
+      arm_linker_heap_size="128"
+      arm_linker_process_stack_size="0"
+      arm_linker_stack_size="256"
+      arm_simulator_memory_simulation_filename="$(TargetsDir)/SAM/SAMSimulatorMemory.dll"
+      arm_simulator_memory_simulation_parameter="SAM4S;0x100000;0x0;0x20000;0x0000;0;0;0;0"
+      arm_target_debug_interface_type="ADIv5"
+      build_intermediate_directory="_obj/$(Configuration)"
+      build_output_directory="_bin"
+      c_preprocessor_definitions="USE_PROCESS_STACK;__VERSION_STRING__ = &quot;$(ProjectName)&quot;;__SW_TESTING__"
+      c_user_include_directories="$(TargetsDir)/SAM/CMSIS/Device/ATMEL;$(TargetsDir)/SAM/CMSIS/Device/ATMEL/$(SAM_Series)/include;$(TargetsDir)/CMSIS_3/CMSIS/Include;$(TargetsDir)/SAM;$(ProjectDir)/source;$(ProjectDir)/source/audio;$(ProjectDir)/source/gsm;$(ProjectDir)/source/hw;$(ProjectDir)/source/memory;$(ProjectDir)/source/radio;$(ProjectDir)/source/shared/codec;$(ProjectDir)/source/tests;$(ProjectDir)/source/usb"
+      link_include_startup_code="No"
+      linker_memory_map_file="$(TargetsDir)/SAM/SAM4S16C_MemoryMap.xml"
+      linker_output_format="hex"
+      macros="SAM_Series=sam4s"
+      on-chip-oscillator="No"
+      package_dependencies="Atmel_SAM4S_EK"
+      project_directory=""
+      project_type="Executable"
+      property_groups_file_path="$(TargetsDir)/SAM/propertyGroups.xml"
+      target_get_partname_script="GetPartName()"
+      target_match_partname_script="MatchPartName(&quot;$(Target)&quot;)"
+      target_reset_script="SAM4S_Reset()" />
+    <configuration
+      Name="Flash"
+      Placement="Flash"
+      arm_target_flash_loader_file_path="$(TargetsDir)/SAM/Release/Loader_$(SAM_Series).elf"
+      arm_target_flash_loader_type="LIBMEM RPC Loader"
+      linker_section_placement_file="$(TargetsDir)/SAM/flash_placement.xml" />
+    <configuration
+      Name="RAM"
+      Placement="RAM"
+      linker_section_placement_file="$(TargetsDir)/SAM/ram_placement.xml" />
+    <folder Name="Source Files">
+      <configuration Name="Common" filter="c;cpp;cxx;cc;h;s;asm;inc" />
+      <file file_name="source/main.cpp">
+        <configuration Name="plechac" build_exclude_from_build="Yes" />
+      </file>
+      <file file_name="source/utils.cpp" />
+      <file file_name="source/utils.h" />
+      <file file_name="source/fft_test.cpp" />
+      <file file_name="source/fft_test.h" />
+    </folder>
+    <folder Name="System Files">
+      <file file_name="system/system_sam4s.c" />
+      <file file_name="system/thumb_crt0.s" />
+      <file file_name="system/SAM_Target.js">
+        <configuration Name="Common" file_type="Reset Script" />
+      </file>
+      <file file_name="system/SAM4S_Startup.s" />
+    </folder>
+    <configuration Name="Debug" c_preprocessor_definitions="CONFIG_DEBUGIO" />
+    <configuration
+      Name="Release"
+      c_preprocessor_definitions="STARTUP_FROM_RESET" />
+    <configuration
+      Name="plechac"
+      c_preprocessor_definitions="CONFIG_PLECHAC" />
+  </project>
+  <configuration
+    Name="THUMB"
+    Platform="ARM"
+    arm_instruction_set="Thumb"
+    arm_library_instruction_set="Thumb"
+    c_preprocessor_definitions="__THUMB"
+    hidden="Yes" />
+  <configuration
+    Name="RAM"
+    c_preprocessor_definitions="__RAM_BUILD"
+    hidden="Yes" />
+  <configuration
+    Name="Debug"
+    c_preprocessor_definitions="DEBUG"
+    gcc_debugging_level="Level 3"
+    gcc_optimization_level="None"
+    hidden="Yes" />
+  <configuration
+    Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    gcc_debugging_level="Level 1"
+    gcc_optimization_level="Level 1"
+    hidden="Yes" />
+  <configuration
+    Name="AEC Debug"
+    inherited_configurations="THUMB;Flash;Debug" />
+  <configuration
+    Name="Flash"
+    c_preprocessor_definitions="__FLASH_BUILD"
+    hidden="Yes" />
+</solution>

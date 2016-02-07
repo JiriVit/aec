@@ -1,0 +1,12 @@
+*.o
+*.d
+*.bak
+*.hzs
+*.ld
+*.elf
+*.map
+*.hex
+*.bin
+*.orig
+*.backup
+*.lnk
