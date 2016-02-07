@@ -8,7 +8,9 @@ SampleLen = 24000;
 function plotOneFileBelowAnother(varargin)
     [lhs, rhs] = argn(0);
 
-    t = linspace(0, (SampleLen / Fs) - 1, SampleLen);
+    t = linspace(0, SampleLen / Fs, SampleLen);
+
+    f = gcf();
     
     for i = 1:rhs
         filepath = varargin(i);
@@ -20,6 +22,14 @@ function plotOneFileBelowAnother(varargin)
         axes.data_bounds(1, 2) = -30000;
         axes.data_bounds(2, 2) = 30000;
     end
+
+    // 1st screen
+    f.figure_position = [0 0];
+    f.figure_size = [1366 768];    
+
+//    // 2nd screen
+//    f.figure_position = [1366 0];
+//    f.figure_size = [1280 1024];    
 endfunction
 
 function plotSpectrum(x)
@@ -45,6 +55,28 @@ function saveRawData(x, filename)
     mclose(fd);
 endfunction
 
+function [x] = loadTextData(filename)
+    x = 0;
+    fd = mopen(filename, 'rt');
+    while ~meof(fd)
+        [n, a] = mfscanf(fd, "%f");
+        x = [x a];
+    end
+    mclose(fd);    
+endfunction
+
+function saveTextData(x, filename)
+    fd = mopen(filename, 'wt');
+    for i = 1:length(x)
+        mfprintf(fd, "%f,\n", x(i));
+    end
+    mclose(fd);    
+endfunction
+
 function play(x)
     sound(x ./ 32768, Fs);
+endfunction
+
+function playnorm(x)
+    sound(x ./ max(x), Fs);
 endfunction
