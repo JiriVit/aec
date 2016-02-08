@@ -7,6 +7,7 @@
 
 /* --- GLOBAL VARIABLES ----------------------------------------------------- */
 
+/** Increased each milisecond. */
 uint32_t volatile timer_ms;
 
 
