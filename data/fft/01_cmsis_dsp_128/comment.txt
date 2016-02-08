@@ -1,0 +1,2 @@
+Calculated using CMSIS-DSP function arm_rfft_fast_init_f32() on real hardware.
+Can do 796 such calculations per second.
