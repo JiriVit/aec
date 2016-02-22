@@ -59,6 +59,38 @@ function [d_d, e] = doNlms(spk, mic)
 endfunction
 
 
+// MDF ---------------------------------------------------------------
+
+function e = doMdf(spk, mic)
+    N = 4; // size of block
+    K = 20; // number of blocks
+    L = K * N; // adaptive filter length
+    len = length(spk);
+    D = zeros(N, K); // FFT for each block
+    H = zeros(N, K); // weights for each block
+    A = zeros(N, K); // output of each block
+    
+    // iterate through blocks
+    for i = 0 : ((len / N) - 1)
+        // get i-th block from spk and mic
+        x = spk((1 + i * N) : (i + 1) * N);
+        y = mic((1 + i * N) : (i + 1) * N);
+
+        // calculate FFT
+        d = (fft(x))';
+        // add FFT to matrix D
+        D = [d D(1:$, 1:($ - 1))];
+        
+        // calculate outputs for each block
+        a = D * h;
+
+        // calculate sum of all block outputs
+        
+        
+    end
+    
+    e = 0;
+endfunction
 
 
 

@@ -2,6 +2,7 @@
 
 funcprot(0);
 exec('aec.sce');
+exec('utils.sce');
 
 // file names
 mic_fn    = '../data/01_mic_clvl12.raw';
@@ -11,15 +12,18 @@ spk_fn    = '../data/01_spk_clvl12.raw';
 mic = loadRawData(mic_fn);
 spk = loadRawData(spk_fn);
 
-// [y, e] = doNlms(mic(1000:$), spk(1000:$));
-
+// time domain
 t = linspace(0, 3000-1, 24000);
 
-subplot(211);
-plot(t, spk);
-xtitle('loudspeaker');
+// echo cancellation
+e = doMdf(spk(1000:1012), mic(1000:1012));
 
-subplot(212);
-plot(t, mic);
-xtitle('microphone');
-
+//// plot results
+//subplot(211);
+//plot(t, spk);
+//xtitle('loudspeaker');
+//
+//subplot(212);
+//plot(t, mic);
+//xtitle('microphone');
+//
