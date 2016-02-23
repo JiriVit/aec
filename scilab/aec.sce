@@ -66,30 +66,33 @@ function e = doMdf(spk, mic)
     K = 20; // number of blocks
     L = K * N; // adaptive filter length
     len = length(spk);
+    e = zeros(1, len);
     D = zeros(N, K); // FFT for each block
     H = zeros(N, K); // weights for each block
     A = zeros(N, K); // output of each block
+
+    cnt = 0;
     
     // iterate through blocks
     for i = 0 : ((len / N) - 1)
         // get i-th block from spk and mic
         x = spk((1 + i * N) : (i + 1) * N);
         y = mic((1 + i * N) : (i + 1) * N);
-
         // calculate FFT
         d = (fft(x))';
         // add FFT to matrix D
-        D = [d D(1:$, 1:($ - 1))];
-        
+        D = [d D(1:$, 1:($ - 1))];      
         // calculate outputs for each block
-        a = D * h;
-
-        // calculate sum of all block outputs
+        A = H.*D;
+        // cumulate sum of A columns
+        A_CS = cumsum(A, 2);
+        // most left column contain sum of A across its columns
+        e_fft = A_CS(:, $);
+        // IFFT and save to output
+        e((1 + i * N) : (i + 1) * N) = ifft(e_fft');
         
-        
-    end
-    
-    e = 0;
+        // TODO update weights
+    end    
 endfunction
 
 

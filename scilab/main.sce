@@ -16,7 +16,7 @@ spk = loadRawData(spk_fn);
 t = linspace(0, 3000-1, 24000);
 
 // echo cancellation
-e = doMdf(spk(1000:1012), mic(1000:1012));
+e = doMdf(spk(1000:1023), mic(1000:1023));
 
 //// plot results
 //subplot(211);
