@@ -1,6 +1,7 @@
 funcprot(0);
 
 exec('utils.sce');
+exec('mdf.sce');
 
 function spectrum_example()
     // Example from this website:
@@ -37,5 +38,9 @@ function ifft_example()
 
 endfunction
 
-ifft_example();
+function fourier_matrix_example()
+    F4 = 1/sqrt(4) * complex([1 1 1 1; 1 0 -1 0; 1 -1 1 -1; 1 0 -1 0], [0 0 0 0; 0 1 0 -1; 0 0 0 0; 0 -1 0 1]);
+    disp(F4);
+endfunction
 
+mdf_example();
