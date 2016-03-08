@@ -3,8 +3,22 @@
 // Interesting links:
 // https://en.wikipedia.org/wiki/Multidelay_block_frequency_domain_adaptive_filter
 // http://mathworld.wolfram.com/FourierMatrix.html
+// http://www.mathworks.com/help/signal/ref/dftmtx.html
 
 funcprot(0);
+
+// create Fourier transform matrix F(n, n)
+function F = dftmtx(n)
+    i = complex(0, 1); // imaginary unit
+    
+    F = ones(n, n);
+    
+    for j = 1:order
+        for k = 1:order
+            F(j, k) = exp(2*%pi*i*(j-1)*(k-1)/n);
+        end
+    end
+endfunction
 
 function e = mdf(spk, mic)
     N = 4; // size of block
@@ -52,45 +66,3 @@ endfunction
 
 
 
-function mdf_example()
-    // create testing input signal
-    Fs = 1000;
-    t = 0:1/Fs:(1-1/Fs);
-    x1 = sin(2*%pi*10*t);
-    x2 = sin(2*%pi*100*t);
-    x = x1 + x2;
-
-    // create random FIR filter divided to 3 blocks
-    blockSize = 4;
-    blockCount = length(x) / blockSize;
-
-    fftHistory = zeros(blockSize, 3);
-
-    // three filter blocks
-    h1 = [ 1.2 -0.5  1.1  0.3];
-    h2 = [ 1.4  0.9 -0.2  1.0];
-    h3 = [-1.1  0.8  1.0  0.5];
-    H = [h1' h2' h3'];
-
-    // calculate response
-    for blockIndex = 0 : (blockCount - 1)
-        blockInput = x((1 + blockIndex * blockSize) : (blockIndex + 1) * blockSize);
-        blockInputFFT = (fft(blockInput))';
-        fftHistory = [blockInputFFT fftHistory(1:$, 1:($ - 1))];
-        blockOutputHistory = fftHistory .* H;
-        CS = cumsum(blockOutputHistory, 2);
-        blockOutputFFT = CS(:, $);
-        blockOutput = ifft(blockOutputFFT');
-        y((1 + blockIndex * blockSize) : (blockIndex + 1) * blockSize) = blockOutput;
-    end
-
-    // plot the result
-    subplot(2, 1, 1);
-    plot(t, x);
-    xtitle('input');
-    subplot(2, 1, 2);
-    plot(t, y);
-    xtitle('output');
-endfunction
-
-mdf_example();
