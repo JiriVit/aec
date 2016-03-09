@@ -13,8 +13,8 @@ function F = dftmtx(n)
     
     F = ones(n, n);
     
-    for j = 1:order
-        for k = 1:order
+    for j = 1:n
+        for k = 1:n
             F(j, k) = exp(2*%pi*i*(j-1)*(k-1)/n);
         end
     end
