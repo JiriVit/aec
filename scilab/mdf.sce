@@ -20,6 +20,23 @@ function F = dftmtx(n)
     end
 endfunction
 
+function test_dftmtx()    
+    // 128 samples, containing 4 sine periods
+    t = 0:127;
+    x = sin(2*%pi*t/32);
+    
+    X_FFT = fft(x);  // use scilab function
+    F = dftmtx(128);
+    X_F = x * F;     // use Fourier matrix
+    
+    subplot(2, 1, 1);
+    plot(abs(X_FFT));
+    xtitle('scilab fft()');
+    subplot(2, 1, 2);
+    plot(abs(X_F));
+    xtitle('Fourier transform matrix');
+endfunction
+
 function e = mdf(spk, mic)
     N = 4; // size of block
     K = 20; // number of blocks
