@@ -3,13 +3,14 @@
 #include <cross_studio_io.h>
 
 #include "fft_test.h"
+#include "speex_aec.h"
 #include "utils.h"
 
 int main(void)
 {
 	init();
 
-	fft_test();
+	speex_aec_test();
 
 	while(1);
 }

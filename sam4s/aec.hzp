@@ -19,7 +19,7 @@
       build_intermediate_directory="_obj/$(Configuration)"
       build_output_directory="_bin"
       c_preprocessor_definitions="USE_PROCESS_STACK;__VERSION_STRING__ = &quot;$(ProjectName)&quot;;__SW_TESTING__"
-      c_user_include_directories="$(TargetsDir)/SAM/CMSIS/Device/ATMEL;$(TargetsDir)/SAM/CMSIS/Device/ATMEL/$(SAM_Series)/include;$(TargetsDir)/CMSIS_3/CMSIS/Include;$(TargetsDir)/SAM;$(ProjectDir)/source;$(ProjectDir)/source/audio;$(ProjectDir)/source/gsm;$(ProjectDir)/source/hw;$(ProjectDir)/source/memory;$(ProjectDir)/source/radio;$(ProjectDir)/source/shared/codec;$(ProjectDir)/source/tests;$(ProjectDir)/source/usb"
+      c_user_include_directories="$(TargetsDir)/SAM/CMSIS/Device/ATMEL;$(TargetsDir)/SAM/CMSIS/Device/ATMEL/$(SAM_Series)/include;$(TargetsDir)/CMSIS_3/CMSIS/Include;$(TargetsDir)/SAM;$(ProjectDir)/source;$(ProjectDir)/source/speex_aec"
       link_include_startup_code="No"
       linker_memory_map_file="$(TargetsDir)/SAM/SAM4S16C_MemoryMap.xml"
       linker_output_format="hex"
@@ -51,6 +51,10 @@
       <file file_name="source/utils.h" />
       <file file_name="source/fft_test.cpp" />
       <file file_name="source/fft_test.h" />
+      <folder Name="speex_aec">
+        <file file_name="source/speex_aec/speex_aec.cpp" />
+        <file file_name="source/speex_aec/speex_aec.h" />
+      </folder>
     </folder>
     <folder Name="System Files">
       <file file_name="system/system_sam4s.c" />
