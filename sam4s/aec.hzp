@@ -54,6 +54,9 @@
       <folder Name="speex_aec">
         <file file_name="source/speex_aec/speex_aec.cpp" />
         <file file_name="source/speex_aec/speex_aec.h" />
+        <file file_name="source/speex_aec/arch.h" />
+        <file file_name="source/speex_aec/pseudofloat.h" />
+        <file file_name="source/speex_aec/speexdsp_types.h" />
       </folder>
     </folder>
     <folder Name="System Files">
