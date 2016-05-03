@@ -49,8 +49,6 @@
 #include "math_approx.h"
 #include <math.h>
 
-#ifdef FIXED_POINT
-
 typedef struct {
    spx_int16_t m;
    spx_int16_t e;
@@ -373,7 +371,5 @@ static inline spx_float_t FLOAT_SQRT(spx_float_t a)
 #define FLOAT_GT(a,b) ((a)>(b))
 #define FLOAT_DIVU(a,b) ((a)/(b))
 #define FLOAT_SQRT(a) (spx_sqrt(a))
-
-#endif
 
 #endif

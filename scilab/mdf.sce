@@ -54,7 +54,11 @@ function test_mdiag()
     disp(y);        
 endfunction
 
-// calculates response of a system in frequency domain
+// Calculates response of a system in frequency domain.
+// Input variables:
+//     x ... input signal (row vector)
+//     h ... filter coefficients in freq domain (column vector 2Nx1)
+//     N ... filter block size (scalar value)
 function y = mdf_response(x, h, N)
     L = length(h) / 2; // length of filter
     K = L / N; // number of blocks
@@ -63,10 +67,10 @@ function y = mdf_response(x, h, N)
     // Fourier transform matrices
     F = dftmtx(2*N);
     Finv = inv(F);
-    // normalization matrix
-    G1 = F * [zeros(N, 2*N); zeros(N, N) eye(N, N)] * Finv;
-
-    B = length(x) / N;  // how many blocks in input signal
+    // normalization matrix 2Nx2N
+    G1 = abs(F * [zeros(N, 2*N); zeros(N, N) eye(N, N)] * Finv);
+    // how many blocks in input signal
+    B = length(x) / N;
 
     // X(l) composed of diag(fft(xf_k))
     X = zeros(2*N, 2*N*K);
@@ -80,7 +84,7 @@ function y = mdf_response(x, h, N)
             // subset of x which is to be FFT'd
             xf_k = x0(((l+K-2-k)*N+1):((l+K-k)*N));
             // x_k as defined in Wiki
-            x_k = diag(F*(flipdim(xf_k, 2))');
+            x_k = abs(diag(F*(flipdim(xf_k, 2))'));
             // place x_k to X(l)
             X(1:$, (k*2*N+1):((k+1)*2*N)) = x_k;
         end
@@ -110,11 +114,18 @@ function test_mdf_response()
     plot(t, y);
 endfunction
 
-// uses algorithm from Wikipedia
-function e = mdf(x, y)
+// MDF algorithm, as described on Wikipedia
+// Input variables:
+//     x ... input to unknown system + adaptive filter
+//     y ... output from unknown system + interference
+//     N ... length of one adaptive filter block
+//     K ... number of adaptive filter blocks
+// Output variables:
+//     e ... error output, estimate of interference
+//     y ... adaptive filter output
+//     H ... history of adaptive filter weights
+function [e, y, H] = mdf(x, y, N, K)
     // filter parameters
-    N = 4; // length of block
-    K = 3; // number of blocks
     L = N*K; // length of filter
     h = zeros(2*N*K, 1); // filter weights
 
@@ -129,6 +140,8 @@ function e = mdf(x, y)
     G2 = mdiag(G2t, K);
 
     B = length(x) / N;  // how many blocks in input signal
+
+    H = zeros(B, 2*N*K); // history of h vector
 
     // X(l) composed of diag(fft(xf_k))
     X = zeros(2*N, 2*N*K);
@@ -157,36 +170,54 @@ function e = mdf(x, y)
         ef_l = df_l - ye_l;
         // normalisation matrix
         Phi = X' * X;
+        H(l, 1:$) = h';
         // update filter weights
         h = h + mu * G2 * Phi * X' * ef_l;        
 
         // IFFT of error signal
+        e_l = real(Finv * ef_l);
         y_l = real(Finv * ye_l);
-        // store last N values to output vector
-        e(((l-1)*N+1):(l*N)) = (ye_l((N+1):(2*N)))';                
+        // store last N values to outputs vector
+        e(((l-1)*N+1):(l*N)) = (e_l((N+1):(2*N)))';                
+        y(((l-1)*N+1):(l*N)) = (y_l((N+1):(2*N)))';                
     end
 endfunction
 
-// unit test of mdf()
-function test_mdf()
-    Fs = 1000;
-    t = 0:1/Fs:(1-1/Fs);
-    x1 = sin(2*%pi*10*t);
-    x2 = sin(2*%pi*100*t);
-    x = x1 + x2;
-    
-    h = 0.9 * ones(24, 1);
-    printf("calculating response...\n");
-    y = mdf_response(x, h, 4);
-    
-    printf("calculating MDF...\n");
-    e = mdf(x, y);
-    
-    subplot(2, 1, 1);
-    plot(t, x);
-    subplot(2, 1, 2);
-    plot(t, e);
-endfunction
 
-test_mdf();
 
+// SCRIPT SECTION ----------------------------------------------------
+
+// input signal
+t = 0:1023;
+x1 = sin(2*%pi*t/10);
+x2 = sin(2*%pi*t/100);
+x = x1 + x2;
+
+// MDF parameters
+N = 8; // length of one block
+K = 3; // number of blocks
+
+// real system
+F = dftmtx(2*N);
+h = 0.9 * ones(N, 1);  // one block in time domain
+h0 = [h; zeros(N, 1)]; // padded with zeros
+hfk = abs(fft(h0));    // one block in frequency domain
+hf = [hfk; hfk; hfk];  // all blocks in frequency domain
+
+printf("calculating response...\n");
+y = mdf_response(x, hf, N);
+
+printf("calculating MDF...\n");
+[e, ye] = mdf(x, y, N, K);
+   
+//deletefile('mdf_e.txt');
+//write('mdf_e.txt', e, '(1(f7.2,3x))');   
+//deletefile('mdf_y.txt');
+//write('mdf_y.txt', y, '(1(f7.2,3x))');   
+//deletefile('mdf_h.txt');
+//write('mdf_h.txt', H, '(24(f7.2,3x))');   
+
+subplot(211);
+plot(t, x);
+subplot(212);
+plot(t, y);

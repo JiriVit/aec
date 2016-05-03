@@ -1,7 +1,6 @@
 funcprot(0);
 
 exec('utils.sce');
-exec('mdf.sce');
 
 function spectrum_example()
     // Example from this website:
@@ -29,12 +28,10 @@ function spectrum_example()
     plot(f(1:n),abs(XX(1:n))); // Frequency Domain representation.
 endfunction
 
-spectrum_example();
-
 function ifft_example()
     t = linspace(0, 4, 64);
     x = sin(2 * %pi * t);
-    X = fft(x);
+    X = abs(fft(x));
     xx = ifft(X);
 
     subplot(3, 1, 1);
@@ -46,43 +43,19 @@ function ifft_example()
 
 endfunction
 
-function mdf_example()
-    // create testing input signal
-    Fs = 1000;
-    t = 0:1/Fs:(1-1/Fs);
-    x1 = sin(2*%pi*10*t);
-    x2 = sin(2*%pi*100*t);
-    x = x1 + x2;
+x = loadRawData('d:\Projekty\github\aec\data\out\speex\02_out.raw');
+wavwrite(x./32768, 8000, 'd:\Projekty\github\aec\data\out\speex\02_out.wav');
 
-    // create random FIR filter divided to 3 blocks
-    blockSize = 4;
-    blockCount = length(x) / blockSize;
+x = loadRawData('d:\Projekty\github\aec\data\out\speex\03_out.raw');
+wavwrite(x./32768, 8000, 'd:\Projekty\github\aec\data\out\speex\03_out.wav');
 
-    fftHistory = zeros(blockSize, 3);
+x = loadRawData('d:\Projekty\github\aec\data\out\speex\04_out.raw');
+wavwrite(x./32768, 8000, 'd:\Projekty\github\aec\data\out\speex\04_out.wav');
 
-    // three filter blocks
-    h1 = [ 1.2 -0.5  1.1  0.3];
-    h2 = [ 1.4  0.9 -0.2  1.0];
-    h3 = [-1.1  0.8  1.0  0.5];
-    H = [h1' h2' h3'];
+x = loadRawData('d:\Projekty\github\aec\data\out\speex\05_out.raw');
+wavwrite(x./32768, 8000, 'd:\Projekty\github\aec\data\out\speex\05_out.wav');
 
-    // calculate response
-    for blockIndex = 0 : (blockCount - 1)
-        blockInput = x((1 + blockIndex * blockSize) : (blockIndex + 1) * blockSize);
-        blockInputFFT = (fft(blockInput))';
-        fftHistory = [blockInputFFT fftHistory(1:$, 1:($ - 1))];
-        blockOutputHistory = fftHistory .* H;
-        CS = cumsum(blockOutputHistory, 2);
-        blockOutputFFT = CS(:, $);
-        blockOutput = ifft(blockOutputFFT');
-        y((1 + blockIndex * blockSize) : (blockIndex + 1) * blockSize) = blockOutput;
-    end
+x = loadRawData('d:\Projekty\github\aec\data\out\speex\06_out.raw');
+wavwrite(x./32768, 8000, 'd:\Projekty\github\aec\data\out\speex\06_out.wav');
 
-    // plot the result
-    subplot(2, 1, 1);
-    plot(t(1:400), x(1:400));
-    xtitle('input');
-    subplot(2, 1, 2);
-    plot(t(1:400), y(1:400));
-    xtitle('output');
-endfunction
+disp('finish');

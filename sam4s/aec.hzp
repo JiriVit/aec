@@ -57,6 +57,7 @@
         <file file_name="source/speex_aec/arch.h" />
         <file file_name="source/speex_aec/pseudofloat.h" />
         <file file_name="source/speex_aec/speexdsp_types.h" />
+        <file file_name="source/speex_aec/fixed_generic.h" />
       </folder>
     </folder>
     <folder Name="System Files">
