@@ -58,6 +58,9 @@
         <file file_name="source/speex_aec/pseudofloat.h" />
         <file file_name="source/speex_aec/speexdsp_types.h" />
         <file file_name="source/speex_aec/fixed_generic.h" />
+        <file file_name="source/speex_aec/math_approx.h" />
+        <file file_name="source/speex_aec/fftwrap.c" />
+        <file file_name="source/speex_aec/fftwrap.h" />
       </folder>
     </folder>
     <folder Name="System Files">
