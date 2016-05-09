@@ -18,7 +18,7 @@
       arm_target_debug_interface_type="ADIv5"
       build_intermediate_directory="_obj/$(Configuration)"
       build_output_directory="_bin"
-      c_preprocessor_definitions="USE_PROCESS_STACK;__VERSION_STRING__ = &quot;$(ProjectName)&quot;;__SW_TESTING__"
+      c_preprocessor_definitions="USE_PROCESS_STACK;__VERSION_STRING__ = &quot;$(ProjectName)&quot;;FIXED_POINT;DISABLE_WARNINGS;DISABLE_NOTIFICATIONS;USE_SMALLFT"
       c_user_include_directories="$(TargetsDir)/SAM/CMSIS/Device/ATMEL;$(TargetsDir)/SAM/CMSIS/Device/ATMEL/$(SAM_Series)/include;$(TargetsDir)/CMSIS_3/CMSIS/Include;$(TargetsDir)/SAM;$(ProjectDir)/source;$(ProjectDir)/source/speex_aec"
       link_include_startup_code="No"
       linker_memory_map_file="$(TargetsDir)/SAM/SAM4S16C_MemoryMap.xml"
@@ -61,6 +61,10 @@
         <file file_name="source/speex_aec/math_approx.h" />
         <file file_name="source/speex_aec/fftwrap.c" />
         <file file_name="source/speex_aec/fftwrap.h" />
+        <file file_name="source/speex_aec/os_support.h" />
+        <file file_name="source/speex_aec/speexdsp_config_types.h" />
+        <file file_name="source/speex_aec/smallft.c" />
+        <file file_name="source/speex_aec/smallft.h" />
       </folder>
     </folder>
     <folder Name="System Files">

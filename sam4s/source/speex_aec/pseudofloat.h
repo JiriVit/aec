@@ -45,9 +45,11 @@
 #define PSEUDOFLOAT_H
 
 #include "arch.h"
-//#include "os_support.h"
+#include "os_support.h"
 #include "math_approx.h"
 #include <math.h>
+
+#ifdef FIXED_POINT
 
 typedef struct {
    spx_int16_t m;
@@ -316,7 +318,7 @@ static inline spx_float_t FLOAT_DIVU(spx_float_t a, spx_float_t b)
    spx_float_t r;
    if (b.m<=0)
    {
-//      speex_warning_int("Attempted to divide by", b.m);
+      speex_warning_int("Attempted to divide by", b.m);
       return FLOAT_ONE;
    }
    num = a.m;
@@ -371,5 +373,7 @@ static inline spx_float_t FLOAT_SQRT(spx_float_t a)
 #define FLOAT_GT(a,b) ((a)>(b))
 #define FLOAT_DIVU(a,b) ((a)/(b))
 #define FLOAT_SQRT(a) (spx_sqrt(a))
+
+#endif
 
 #endif

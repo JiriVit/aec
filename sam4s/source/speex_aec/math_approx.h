@@ -37,6 +37,30 @@
 
 #include "arch.h"
 
+#ifndef FIXED_POINT
+
+#define spx_sqrt sqrt
+#define spx_acos acos
+#define spx_exp exp
+#define spx_cos_norm(x) (cos((.5f*M_PI)*(x)))
+#define spx_atan atan
+
+/** Generate a pseudo-random number */
+static inline spx_word16_t speex_rand(spx_word16_t std, spx_int32_t *seed)
+{
+   const unsigned int jflone = 0x3f800000;
+   const unsigned int jflmsk = 0x007fffff;
+   union {int i; float f;} ran;
+   *seed = 1664525 * *seed + 1013904223;
+   ran.i = jflone | (jflmsk & *seed);
+   ran.f -= 1.5;
+   return 3.4642*std*ran.f;
+}
+
+
+#endif
+
+
 static inline spx_int16_t spx_ilog2(spx_uint32_t x)
 {
    int r=0;
@@ -91,6 +115,8 @@ static inline spx_int16_t spx_ilog4(spx_uint32_t x)
    }
    return r;
 }
+
+#ifdef FIXED_POINT
 
 /** Generate a pseudo-random number */
 static inline spx_word16_t speex_rand(spx_word16_t std, spx_int32_t *seed)
@@ -274,6 +300,33 @@ static inline spx_word16_t spx_atan(spx_word32_t x)
       return SUB16(25736, SHR16(spx_atan01(x),1));
    }
 }
+#else
+
+#ifndef M_PI
+#define M_PI           3.14159265358979323846  /* pi */
+#endif
+
+#define C1 0.9999932946f
+#define C2 -0.4999124376f
+#define C3 0.0414877472f
+#define C4 -0.0012712095f
+
+
+#define SPX_PI_2 1.5707963268
+static inline spx_word16_t spx_cos(spx_word16_t x)
+{
+   if (x<SPX_PI_2)
+   {
+      x *= x;
+      return C1 + x*(C2+x*(C3+C4*x));
+   } else {
+      x = M_PI-x;
+      x *= x;
+      return NEG16(C1 + x*(C2+x*(C3+C4*x)));
+   }
+}
+
+#endif
 
 
 #endif

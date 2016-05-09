@@ -6,6 +6,19 @@
 
 #include "speex_aec.h"
 
+
+/* --- MACROS --------------------------------------------------------------- */
+
+#define FRAME_SIZE 128
+#define TAIL 512
+
+#define CC 1
+#define CK 1
+#define CN (2 * FRAME_SIZE)
+#define CM ((TAIL + FRAME_SIZE - 1) / FRAME_SIZE)
+
+
+
 /* --- TYPE DEFINITION ------------------------------------------------------ */
 
 /** Speex echo cancellation state. */
@@ -63,11 +76,6 @@ struct SpeexEchoState {
    spx_word16_t preemph;
    spx_word16_t notch_radius;
    spx_mem_t *notch_mem;
-
-   /* NOTE: If you only use speex_echo_cancel() and want to save some memory, remove this */
-   spx_int16_t *play_buf;
-   int play_buf_pos;
-   int play_buf_started;
 };
 
 
@@ -78,7 +86,39 @@ SpeexEchoState AEC_State;
 
 
 
-/* --- EXPORTED FUNCTIONS ---------------------------------------------------- */
+/* --- LOCAL VARIABLES ------------------------------------------------------ */
+
+static spx_word16_t arr_e[CC * CN];
+static spx_word16_t arr_x[CK * CN];
+static spx_word16_t arr_input[CC * FRAME_SIZE];
+static spx_word16_t arr_y[CC * CN];
+static spx_word16_t arr_last_y[2 * FRAME_SIZE];
+static spx_word32_t arr_Yf[FRAME_SIZE + 1];
+static spx_word32_t arr_Rf[FRAME_SIZE + 1];
+static spx_word32_t arr_Xf[FRAME_SIZE + 1];
+static spx_word32_t arr_Yh[FRAME_SIZE + 1];
+static spx_word32_t arr_Eh[FRAME_SIZE + 1];
+static spx_word16_t arr_X[CK * (CM + 1) * CN];
+static spx_word16_t arr_Y[CC * CN];
+static spx_word16_t arr_E[CC * CN];
+static spx_word32_t arr_W[CC * CK * CM * CN];
+#ifdef TWO_PATH
+static spx_word16_t arr_foreground[CM * CN * CC * CK];
+#endif
+static spx_word32_t arr_PHI[CN];
+static spx_word32_t arr_power[FRAME_SIZE + 1];
+static spx_float_t arr_power_1[FRAME_SIZE + 1];
+static spx_word16_t arr_window[CN];
+static spx_word16_t arr_prop[CM];
+static spx_word16_t arr_wtmp[CN];
+static spx_word16_t arr_wtmp2[CN];
+static spx_word16_t memX;
+static spx_word16_t memD;
+static spx_word16_t memE;
+static spx_mem_t arr_notch_mem[2 * CC];
+
+
+/* --- EXPORTED FUNCTIONS --------------------------------------------------- */
 
 SpeexEchoState *speex_echo_state_init_mc(int frame_size, 
 	int filter_length, int nb_mic, int nb_speakers)
@@ -115,85 +155,81 @@ SpeexEchoState *speex_echo_state_init_mc(int frame_size,
 //
 //   st->fft_table = spx_fft_init(N);
 //
-//   st->e = (spx_word16_t*)speex_alloc(C*N*sizeof(spx_word16_t));
-//   st->x = (spx_word16_t*)speex_alloc(K*N*sizeof(spx_word16_t));
-//   st->input = (spx_word16_t*)speex_alloc(C*st->frame_size*sizeof(spx_word16_t));
-//   st->y = (spx_word16_t*)speex_alloc(C*N*sizeof(spx_word16_t));
-//   st->last_y = (spx_word16_t*)speex_alloc(C*N*sizeof(spx_word16_t));
-//   st->Yf = (spx_word32_t*)speex_alloc((st->frame_size+1)*sizeof(spx_word32_t));
-//   st->Rf = (spx_word32_t*)speex_alloc((st->frame_size+1)*sizeof(spx_word32_t));
-//   st->Xf = (spx_word32_t*)speex_alloc((st->frame_size+1)*sizeof(spx_word32_t));
-//   st->Yh = (spx_word32_t*)speex_alloc((st->frame_size+1)*sizeof(spx_word32_t));
-//   st->Eh = (spx_word32_t*)speex_alloc((st->frame_size+1)*sizeof(spx_word32_t));
-//
-//   st->X = (spx_word16_t*)speex_alloc(K*(M+1)*N*sizeof(spx_word16_t));
-//   st->Y = (spx_word16_t*)speex_alloc(C*N*sizeof(spx_word16_t));
-//   st->E = (spx_word16_t*)speex_alloc(C*N*sizeof(spx_word16_t));
-//   st->W = (spx_word32_t*)speex_alloc(C*K*M*N*sizeof(spx_word32_t));
-//#ifdef TWO_PATH
-//   st->foreground = (spx_word16_t*)speex_alloc(M*N*C*K*sizeof(spx_word16_t));
-//#endif
-//   st->PHI = (spx_word32_t*)speex_alloc(N*sizeof(spx_word32_t));
-//   st->power = (spx_word32_t*)speex_alloc((frame_size+1)*sizeof(spx_word32_t));
-//   st->power_1 = (spx_float_t*)speex_alloc((frame_size+1)*sizeof(spx_float_t));
-//   st->window = (spx_word16_t*)speex_alloc(N*sizeof(spx_word16_t));
-//   st->prop = (spx_word16_t*)speex_alloc(M*sizeof(spx_word16_t));
-//   st->wtmp = (spx_word16_t*)speex_alloc(N*sizeof(spx_word16_t));
-//#ifdef FIXED_POINT
-//   st->wtmp2 = (spx_word16_t*)speex_alloc(N*sizeof(spx_word16_t));
-//   for (i=0;i<N>>1;i++)
-//   {
-//      st->window[i] = (16383-SHL16(spx_cos(DIV32_16(MULT16_16(25736,i<<1),N)),1));
-//      st->window[N-i-1] = st->window[i];
-//   }
-//#else
-//   for (i=0;i<N;i++)
-//      st->window[i] = .5-.5*cos(2*M_PI*i/N);
-//#endif
-//   for (i=0;i<=st->frame_size;i++)
-//      st->power_1[i] = FLOAT_ONE;
-//   for (i=0;i<N*M*K*C;i++)
-//      st->W[i] = 0;
-//   {
-//      spx_word32_t sum = 0;
-//      /* Ratio of ~10 between adaptation rate of first and last block */
-//      spx_word16_t decay = SHR32(spx_exp(NEG16(DIV32_16(QCONST16(2.4,11),M))),1);
-//      st->prop[0] = QCONST16(.7, 15);
-//      sum = EXTEND32(st->prop[0]);
-//      for (i=1;i<M;i++)
-//      {
-//         st->prop[i] = MULT16_16_Q15(st->prop[i-1], decay);
-//         sum = ADD32(sum, EXTEND32(st->prop[i]));
-//      }
-//      for (i=M-1;i>=0;i--)
-//      {
-//         st->prop[i] = DIV32(MULT16_16(QCONST16(.8f,15), st->prop[i]),sum);
-//      }
-//   }
-//
-//   st->memX = (spx_word16_t*)speex_alloc(K*sizeof(spx_word16_t));
-//   st->memD = (spx_word16_t*)speex_alloc(C*sizeof(spx_word16_t));
-//   st->memE = (spx_word16_t*)speex_alloc(C*sizeof(spx_word16_t));
-//   st->preemph = QCONST16(.9,15);
-//   if (st->sampling_rate<12000)
-//      st->notch_radius = QCONST16(.9, 15);
-//   else if (st->sampling_rate<24000)
-//      st->notch_radius = QCONST16(.982, 15);
-//   else
-//      st->notch_radius = QCONST16(.992, 15);
-//
-//   st->notch_mem = (spx_mem_t*)speex_alloc(2*C*sizeof(spx_mem_t));
-//   st->adapted = 0;
-//   st->Pey = st->Pyy = FLOAT_ONE;
-//
-//#ifdef TWO_PATH
-//   st->Davg1 = st->Davg2 = 0;
-//   st->Dvar1 = st->Dvar2 = FLOAT_ZERO;
-//#endif
-//
-//   st->play_buf = (spx_int16_t*)speex_alloc(K*(PLAYBACK_DELAY+1)*st->frame_size*sizeof(spx_int16_t));
-//   st->play_buf_pos = PLAYBACK_DELAY*st->frame_size;
-//   st->play_buf_started = 0;
+   st->e = arr_e;
+   st->x = arr_x;
+   st->input = arr_input;
+   st->y = arr_y;
+   st->last_y = arr_last_y;
+   st->Yf = arr_Yf;
+   st->Rf = arr_Rf;
+   st->Xf = arr_Xf;
+   st->Yh = arr_Yh;
+   st->Eh = arr_Eh;
+
+   st->X = arr_X;
+   st->Y = arr_Y;
+   st->E = arr_E;
+   st->W = arr_W;
+#ifdef TWO_PATH
+   st->foreground = arr_foreground;
+#endif
+   st->PHI = arr_PHI;
+   st->power = arr_power;
+   st->power_1 = arr_power_1;
+   st->window = arr_window;
+   st->prop = arr_prop;
+   st->wtmp = arr_wtmp;
+#ifdef FIXED_POINT
+   st->wtmp2 = arr_wtmp2;
+   for (i=0;i<N>>1;i++)
+   {
+      st->window[i] = (16383-SHL16(spx_cos(DIV32_16(MULT16_16(25736,i<<1),N)),1));
+      st->window[N-i-1] = st->window[i];
+   }
+#else
+   for (i=0;i<N;i++)
+      st->window[i] = .5-.5*cos(2*M_PI*i/N);
+#endif
+   for (i=0;i<=st->frame_size;i++)
+      st->power_1[i] = FLOAT_ONE;
+   for (i=0;i<N*M*K*C;i++)
+      st->W[i] = 0;
+   {
+      spx_word32_t sum = 0;
+      /* Ratio of ~10 between adaptation rate of first and last block */
+      spx_word16_t decay = SHR32(spx_exp(NEG16(DIV32_16(QCONST16(2.4,11),M))),1);
+      st->prop[0] = QCONST16(.7, 15);
+      sum = EXTEND32(st->prop[0]);
+      for (i=1;i<M;i++)
+      {
+         st->prop[i] = MULT16_16_Q15(st->prop[i-1], decay);
+         sum = ADD32(sum, EXTEND32(st->prop[i]));
+      }
+      for (i=M-1;i>=0;i--)
+      {
+         st->prop[i] = DIV32(MULT16_16(QCONST16(.8f,15), st->prop[i]),sum);
+      }
+   }
+
+   st->memX = &memX;
+   st->memD = &memD;
+   st->memE = &memE;
+   st->preemph = QCONST16(.9,15);
+   if (st->sampling_rate<12000)
+      st->notch_radius = QCONST16(.9, 15);
+   else if (st->sampling_rate<24000)
+      st->notch_radius = QCONST16(.982, 15);
+   else
+      st->notch_radius = QCONST16(.992, 15);
+
+   st->notch_mem = arr_notch_mem;
+   st->adapted = 0;
+   st->Pey = st->Pyy = FLOAT_ONE;
+
+#ifdef TWO_PATH
+   st->Davg1 = st->Davg2 = 0;
+   st->Dvar1 = st->Dvar2 = FLOAT_ZERO;
+#endif
 
    return st;
 }
@@ -201,7 +237,7 @@ SpeexEchoState *speex_echo_state_init_mc(int frame_size,
 
 int speex_aec_test(void)
 {
-	speex_echo_state_init_mc(256, 512, 1, 1);
+	speex_echo_state_init_mc(FRAME_SIZE, TAIL, 1, 1);
 
 	debug_printf("%d\n", sizeof(AEC_State));
 
