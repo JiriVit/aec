@@ -1,0 +1,4 @@
+signal: hlas
+CODEC_SetOutputGain(ROUTE_HF, 255, 54);
+CODEC_SetInputGain(ROUTE_HF, 16, 1, 255);
+
